@@ -27,8 +27,8 @@ public class LocaleManager{
     private static Class<?> craftMagicNumbers = null;
     private static Class<?> itemClazz = null;
     private static Class<?> localeClazz = null;
-    private static boolean oldVersion = false;
-    private static boolean hasBasePotionData = false;
+    private final boolean oldVersion;
+    private final boolean hasBasePotionData;
     private final Map<String, String> oldBlocks = LocaleKeys.getBlockKeys();
     private final Map<String, String> oldItems = LocaleKeys.getItemKeys();
     private final Map<String, String> oldPotions = LocaleKeys.getPotionKeys();
@@ -38,15 +38,12 @@ public class LocaleManager{
     
     public LocaleManager() {
         oldVersion = isBelow113();
-        if (Material.getMaterial("LINGERING_POTION") != null) {
-            // Bukkit version is 1.9+
-            hasBasePotionData = true;
-        }
+        hasBasePotionData = (Material.getMaterial("LINGERING_POTION") != null);// Bukkit version is 1.9+
         final String version = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
         try {
-            craftMagicNumbers = Class.forName("org.bukkit.craftbukkit.{v}.util.CraftMagicNumbers".replace("{v}", version));
-            itemClazz = Class.forName("net.minecraft.server.{v}.Item".replace("{v}", version));
-            localeClazz = Class.forName("net.minecraft.server.{v}.LocaleLanguage".replace("{v}", version));
+            craftMagicNumbers = Class.forName("org.bukkit.craftbukkit."+version+".util.CraftMagicNumbers");
+            itemClazz = Class.forName("net.minecraft.server."+version+".Item");
+            localeClazz = Class.forName("net.minecraft.server."+version+".LocaleLanguage");
         } catch (final ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -382,46 +379,7 @@ public class LocaleManager{
      * @return true if Bukkit version is at 1.12.2 or below
      */
     public boolean isBelow113() {
-        return _isBelow113(Bukkit.getServer().getBukkitVersion().split("-")[0]);
-    }
-    
-    private boolean _isBelow113(final String bukkitVersion) {
-        if (bukkitVersion.matches("^[0-9.]+$")) {
-            switch(bukkitVersion) {
-            case "1.12.2" :
-            case "1.12.1" :
-            case "1.12" :
-            case "1.11.2" :
-            case "1.11.1" :
-            case "1.11" :
-            case "1.10.2" :
-            case "1.10.1" :
-            case "1.10" :
-            case "1.9.4" :
-            case "1.9.3" :
-            case "1.9.2" :
-            case "1.9.1" :
-            case "1.9" :
-            case "1.8.9" :
-            case "1.8.8" :
-            case "1.8.7" :
-            case "1.8.6" :
-            case "1.8.5" :
-            case "1.8.4" :
-            case "1.8.3" :
-            case "1.8.2" :
-            case "1.8.1" :
-            case "1.8" :
-            case "1.7.10" :
-            case "1.7.9" :
-            case "1.7.2" :
-                return true;
-            default:
-                // Bukkit version is 1.13+ or unsupported
-                return false;
-            }
-        }
-        Bukkit.getLogger().severe("Quests received invalid Bukkit version " + bukkitVersion);
-        return false;
+        String[] bukkitVersion = Bukkit.getServer().getBukkitVersion().split("-")[0].split("\\.");
+        return Integer.parseInt(bukkitVersion[0]) < 2 && Integer.parseInt(bukkitVersion[1]) < 13;
     }
 }
